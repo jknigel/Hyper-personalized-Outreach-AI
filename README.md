@@ -1,139 +1,143 @@
-# Hyper-personalized-Outreach-AI
-Hyper-personalize your outreach messages. Get a good first impression!
+# ✨ Hyper-Personalized LinkedIn Outreach AI ✨
 
-Structuring your application files properly is crucial for maintainability, scalability, and collaboration. For an application like this, a modular approach will work best.
+## Overview
 
-Here's a recommended file structure, broken down by logical components:
+This project develops an AI-powered system that generates hyper-personalized LinkedIn outreach messages. By leveraging a local LinkedIn profile scraper, a custom knowledge base (RAG), and a locally-runnable Large Language Model (LLM), it crafts unique messages tailored to the recipient's profile and your strategic messaging. A Gradio interface provides a simple way to use the system.
 
-```
+**Key Features:**
+
+1.  **LinkedIn Profile Scraping:** Connects to a local `linkedin-mcp-server` instance to extract detailed profile information (job title, company, 'About' section, recent activities, skills).
+2.  **Retrieval Augmented Generation (RAG):** Integrates with a custom knowledge base (stored in ChromaDB) to retrieve relevant company-specific value propositions, pain points, and solutions.
+3.  **Local LLM Generation:** Utilizes a Hugging Face Large Language Model (configurable, e.g., `microsoft/phi-2`) to generate messages locally, ensuring privacy and control.
+4.  **Hyper-Personalization:** Crafts messages that are highly relevant to the recipient's persona (job title, company) and augmented with insights from your knowledge base.
+5.  **Gradio User Interface:** Provides an intuitive web-based interface for easy interaction.
+6.  **LangChain Integration:** Orchestrates the entire pipeline using the LangChain framework.
+
+## Project Structure
 linkedin_outreach_ai/
 ├── data/
-│   ├── knowledge_base_docs/
-│   │   ├── value_prop.txt
-│   │   ├── cto_benefits.txt
-│   │   └── marketing_manager_pain_points.txt
-│   └── persona_templates/
-│       ├── sales_leader.json
-│       └── recruiter.json
+│ ├── knowledge_base_docs/ # Your custom knowledge base (.txt files)
+│ └── persona_templates/ # (Optional) Future persona-specific message structures
 │
 ├── models/
-│   ├── huggingface_models/  # Cached Hugging Face models (downloaded here)
-│   └── chroma_db/           # Persistent ChromaDB data
+│ ├── huggingface_models/ # Cache for Hugging Face LLMs and embedding models
+│ └── chroma_db/ # Persistent storage for ChromaDB vector store
 │
 ├── src/
-│   ├── __init__.py          # Makes 'src' a Python package
-│   ├── config.py            # Global configurations (API keys, paths, model names)
-│   ├── scraper.py           # Logic for interacting with the MCP server
-│   ├── embeddings.py        # Embedding model initialization
-│   ├── vector_store.py      # ChromaDB setup and retrieval logic
-│   ├── llm_model.py         # LLM model initialization
-│   ├── prompt_manager.py    # Manages prompt templates
-│   ├── chain_manager.py     # Assembles LangChain components into a chain
-│   └── main.py              # Main application logic and Gradio interface
+│ ├── config.py # Global configurations and settings
+│ ├── scraper.py # Interfaces with the MCP server for LinkedIn data
+│ ├── embeddings.py # Loads and manages the Hugging Face embedding model
+│ ├── vector_store.py # Sets up ChromaDB and provides retrieval functions
+│ ├── llm_model.py # Loads and manages the local Hugging Face LLM
+│ ├── prompt_manager.py # Defines the LangChain ChatPromptTemplate
+│ ├── chain_manager.py # Assembles the LangChain RAG pipeline
+│ └── main.py # Main application logic and Gradio interface
 │
 ├── utils/
-│   ├── __init__.py
-│   └── data_preprocessing.py # Utility functions for cleaning scraped data (optional for now)
+│ └── data_preprocessing.py # (Optional) Utility functions for data cleaning
 │
-├── .env                     # Environment variables (e.g., OPENAI_API_KEY, if you switch back)
-├── .gitignore               # Files/directories to ignore in Git
-├── requirements.txt         # Python dependencies
-├── run_mcp_server.sh        # Script to easily start the MCP server (optional)
-├── README.md                # Project description and setup instructions
-```
+├── .env # Environment variables (e.g., custom MCP URL)
+├── .gitignore # Files/directories to ignore in Git
+├── requirements.txt # Python dependencies
+├── run_mcp_server.sh # Convenience script to start the MCP server
+└── README.md # This file
+code
+Code
+## Setup and Installation
 
-Let's break down each part:
+### Prerequisites
 
-### `linkedin_outreach_ai/` (Root Directory)
+1.  **Python 3.9+:** Ensure you have a compatible Python version.
+2.  **`linkedin-mcp-server`:** This project relies on a separate local server to scrape LinkedIn profiles.
+    *   **Clone the repository:**
+        ```bash
+        git clone https://github.com/stickerdaniel/linkedin-mcp-server.git
+        ```
+    *   **Follow its setup instructions:** This usually involves installing its `requirements.txt` and `playwright`.
+        ```bash
+        cd linkedin-mcp-server
+        pip install -r requirements.txt
+        playwright install
+        ```
+    *   **Keep this repository separate from `linkedin_outreach_ai`**.
 
-This is the main project folder.
+### Project Installation
 
-### `data/`
-
-*   **`knowledge_base_docs/`**: This directory holds your raw text files that form your custom knowledge base for RAG. Each `.txt` file could represent a different aspect of your product, service, or target persona insights.
-*   **`persona_templates/` (Optional but good for future growth)**: If you evolve to have very specific message structures or tone guidelines for different personas that go beyond what the LLM can infer, you might store JSON or YAML files here.
-
-### `models/`
-
-*   **`huggingface_models/`**: This is where Hugging Face will cache the downloaded embedding and LLM models. It's good to keep this organized.
-*   **`chroma_db/`**: This is where ChromaDB will store its persistent vector store data.
-
-### `src/` (Source Code)
-
-This is where all your Python application logic lives. Making it a package (`__init__.py`) is good practice.
-
-*   **`config.py`**:
-    *   Store all your configurable parameters here:
-        *   `MCP_SERVER_URL = "http://localhost:5000"`
-        *   `EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"`
-        *   `CHROMA_DB_DIR = "../models/chroma_db"` (Paths relative to `src/`)
-        *   `LLM_MODEL_ID = "microsoft/phi-2"`
-        *   `KNOWLEDGE_BASE_PATH = "../data/knowledge_base_docs/"`
-        *   `MAX_NEW_TOKENS = 200`, `TEMPERATURE = 0.7`, etc.
-    *   This makes it easy to change settings without digging through code.
-
-*   **`scraper.py`**:
-    *   Contains the `get_linkedin_profile_data` function.
-    *   Handles all direct interaction with the `linkedin-mcp-server`.
-    *   Might include error handling specific to the scraper.
-
-*   **`embeddings.py`**:
-    *   Initializes and returns the `HuggingFaceEmbeddings` object.
-    *   `load_embedding_model()` function.
-
-*   **`vector_store.py`**:
-    *   Contains the `setup_knowledge_base` function.
-    *   Handles loading documents, splitting them, and creating/persisting the `Chroma` vector store.
-    *   Provides a function to get the `retriever` object.
-
-*   **`llm_model.py`**:
-    *   Initializes and returns the `HuggingFacePipeline` wrapped `HuggingFaceLLM` object.
-    *   `load_llm_model()` function.
-    *   Manages model loading, tokenizer, pipeline setup.
-
-*   **`prompt_manager.py`**:
-    *   Defines your `ChatPromptTemplate`.
-    *   `get_outreach_prompt()` function.
-    *   Centralizes all prompt engineering.
-
-*   **`chain_manager.py`**:
-    *   Assembles the LangChain components: prompt, LLM, retriever.
-    *   `create_outreach_chain(llm, retriever)` function.
-    *   This is where your RAG chain is defined.
-
-*   **`main.py`**:
-    *   This is the entry point for your application.
-    *   Imports functions/objects from other `src` modules.
-    *   Contains the `generate_message_from_profile` function (or similar orchestrator).
-    *   Sets up and launches the Gradio interface.
-    *   Includes the main `if __name__ == "__main__":` block for execution.
-
-### `utils/`
-
-*   **`data_preprocessing.py`**:
-    *   (Optional for now, but useful) Functions to clean and standardize data received from the MCP server.
-    *   E.g., `normalize_job_title(title)`, `extract_key_phrases(text)`.
-
-### Root Level Files
-
-*   **`.env`**: (Highly recommended) Stores sensitive information like API keys (if you used OpenAI or a paid scraper). *Never commit this to Git.*
-*   **`.gitignore`**: Specifies files and directories that Git should ignore (e.g., `__pycache__/`, `*.pyc`, `.env`, `models/huggingface_models/`, `models/chroma_db/`, virtual environment folders).
-*   **`requirements.txt`**: Lists all Python packages your project depends on. Generate it with `pip freeze > requirements.txt`.
-*   **`run_mcp_server.sh` (or `.bat` for Windows)**: A simple script to remind you/others how to start the MCP server.
+1.  **Clone this repository:**
     ```bash
-    #!/bin/bash
-    cd linkedin-mcp-server
-    python main.py
+    git clone https://github.com/your-username/linkedin-outreach-ai.git # Replace with your repo URL
+    cd linkedin-outreach-ai
     ```
-*   **`README.md`**: Essential for explaining what your project is, how to set it up, how to run it, and any dependencies (like the MCP server).
+2.  **Create and activate a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+    ```
+3.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Benefits of this Structure:
+### Configure Your Knowledge Base
 
-*   **Modularity:** Each component has its own file, making it easier to understand, test, and debug.
-*   **Separation of Concerns:** Each file has a clear responsibility (e.g., `scraper.py` only scrapes, `vector_store.py` only deals with Chroma).
-*   **Readability:** Easier for new developers to onboard and understand the project flow.
-*   **Maintainability:** Changes to the LLM don't require changes to the scraper, for example.
-*   **Scalability:** As your application grows, you can add new modules or features without cluttering existing files.
-*   **Testability:** Individual modules can be unit-tested more easily.
+1.  Navigate to the `data/knowledge_base_docs/` directory within this project.
+2.  Add your own `.txt` files containing information relevant to your outreach:
+    *   Company value propositions
+    *   Customer success stories
+    *   Common pain points for different job titles/industries
+    *   Product features and benefits
+    *   Any other text you want the AI to "know" when generating messages.
+    *   *Note: Dummy files will be created automatically if this directory is empty on first run.*
 
-This structure will set you up for success as you build and potentially expand your AI-powered outreach system!
+### Configuration Settings
+
+Review and modify `src/config.py` as needed. Key parameters include:
+
+*   `MCP_SERVER_URL`: The address where your `linkedin-mcp-server` is running (default: `http://localhost:5000`).
+*   `LLM_MODEL_ID`: The Hugging Face model to use. `microsoft/phi-2` is a good default for local CPU. Consider `HuggingFaceH4/zephyr-7b-beta` for better quality if you have enough RAM (16GB+) or a GPU.
+*   `LLM_MAX_NEW_TOKENS`, `LLM_TEMPERATURE`, `LLM_TOP_P`: Parameters to control LLM generation.
+*   `CHROMA_DB_DIR`, `HUGGINGFACE_CACHE_DIR`: Paths for persistent data and model caching.
+
+You can also override `MCP_SERVER_URL` or `LLM_MODEL_ID` using environment variables if you prefer.
+
+## How to Run
+
+There are two main components that need to be running: the MCP server and this application.
+
+### 1. Start the LinkedIn MCP Server
+
+Open a **separate terminal** window.
+
+```bash
+# Assuming you are in the linkedin_outreach_ai/ directory, navigate to the MCP server's directory
+cd ../linkedin-mcp-server # Adjust path if needed
+python main.py
+Leave this terminal open and the server running. You should see messages indicating the server has started.
+2. Start the Hyper-Personalized Outreach AI Application
+Open a new terminal window, navigate back to the linkedin_outreach_ai/ project root, and ensure your virtual environment is active.
+code
+Bash
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+python -m src.main
+The application will first initialize all its components (downloading models, setting up ChromaDB – this might take a few minutes on the first run). Once initialized, it will launch the Gradio interface and provide a local URL (e.g., http://127.0.0.1:7860).
+3. Use the Gradio Interface
+Open your web browser and navigate to the URL provided by the application.
+Paste a LinkedIn profile URL into the input box.
+Click "Submit" to generate a personalized outreach message.
+Important Notes & Troubleshooting
+MCP Server: This is a crucial dependency. If scraping fails, first check if your linkedin-mcp-server is running correctly and accessible at the configured MCP_SERVER_URL. The MCP server might require you to manually log into LinkedIn through the browser it controls on its first run.
+LLM Memory: Large Language Models require significant RAM (e.g., phi-2 needs ~4GB, zephyr-7b-beta needs ~16GB). If the application fails to load the LLM, you might see "CUDA out of memory" (if using GPU) or system slowdowns. Consider using a smaller LLM_MODEL_ID in src/config.py if you have limited RAM.
+First Run: The first time you run the application, it will download the embedding model and the LLM from Hugging Face. This can take some time depending on your internet connection. Models are cached in models/huggingface_models/.
+Data Accuracy: The quality of the generated messages heavily depends on two factors:
+MCP Server Output: The accuracy and completeness of the data scraped by the linkedin-mcp-server.
+Your Knowledge Base: The quality and relevance of the .txt files in data/knowledge_base_docs/.
+LangChain Expression Language (LCEL): The LangChain pipeline is built using LCEL, which provides a powerful and flexible way to compose chains.
+Logging: Check the terminal where you run python -m src.main for detailed logs (INFO, WARNING, ERROR, CRITICAL) which can help in troubleshooting.
+Future Enhancements (Ideas)
+More Robust Scraper: Implement retry logic or alternative scraping methods.
+Persona-Specific RAG: Integrate different knowledge bases or retrieval strategies based on the identified persona.
+Message Templates: Allow users to define their own high-level message templates.
+Fine-tuning: Fine-tune a smaller LLM for even more domain-specific message generation.
+CRM Integration: Connect to CRM systems to automatically log outreach.
+Feedback Loop: Implement a mechanism to collect user feedback on message quality to improve the system.
+Rate Limiting: Add safeguards to prevent over-scraping LinkedIn or hitting LLM API rate limits (if using external LLMs).
