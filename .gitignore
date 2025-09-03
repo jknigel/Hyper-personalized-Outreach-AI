@@ -1,1 +1,4 @@
 structure.md
+__pycache__/
+data/
+models/

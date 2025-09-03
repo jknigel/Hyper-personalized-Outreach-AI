@@ -1,0 +1,54 @@
+# -----------------------------------------------------------------------------
+# Core application and AI orchestration
+# -----------------------------------------------------------------------------
+# LangChain for building the RAG pipeline and orchestrating components
+langchain==0.1.16
+langchain-community==0.0.34
+
+# -----------------------------------------------------------------------------
+# User Interface
+# -----------------------------------------------------------------------------
+# Gradio for creating the simple web UI
+gradio==4.21.0
+
+# -----------------------------------------------------------------------------
+# Data Scraping and Handling
+# -----------------------------------------------------------------------------
+# For making HTTP requests to the local linkedin-mcp-server
+requests==2.31.0
+
+# -----------------------------------------------------------------------------
+# Vector Store and Embeddings
+# -----------------------------------------------------------------------------
+# ChromaDB for the vector database
+chromadb==0.4.24
+
+# For the Hugging Face embedding model (e.g., all-MiniLM-L6-v2)
+sentence-transformers==2.7.0
+
+# -----------------------------------------------------------------------------
+# Local Large Language Model (LLM) support
+# -----------------------------------------------------------------------------
+# Hugging Face transformers library to load and run the local LLM
+transformers==4.39.3
+
+# PyTorch is the deep learning framework required by transformers.
+#
+# IMPORTANT: For a CPU-only setup (most common for local development without a powerful GPU),
+# you can install a smaller, CPU-specific version to save space and avoid CUDA issues.
+# Run this command separately if you have issues with the standard install:
+# pip install torch --index-url https://download.pytorch.org/whl/cpu
+#
+# If you have an NVIDIA GPU with CUDA installed, the standard 'torch' installation
+# will likely include GPU support. The version below is a general recommendation.
+torch==2.2.2
+
+# Accelerate is recommended by Hugging Face for efficient model loading and inference
+accelerate==0.29.3
+
+# BitsAndBytes is for model quantization (e.g., 8-bit or 4-bit loading).
+# While not used by default in our CPU setup, it's essential for anyone who
+# wants to run larger models or use a GPU, so it's good to include.
+# Note: On Windows, this may require specific installation steps.
+# pip install bitsandbytes
+bitsandbytes==0.43.0

@@ -43,7 +43,7 @@ RAG_NUM_RESULTS = 3 # Number of relevant chunks to retrieve from the vector DB
 # "distilgpt2" (even smaller, faster, less capable)
 # "HuggingFaceH4/zephyr-7b-beta" (7B params, better quality, requires ~16GB RAM for CPU)
 # You might need specific hardware/setup for larger models (e.g., GPU for 7B+).
-LLM_MODEL_ID = os.getenv("LLM_MODEL_ID", "microsoft/phi-2")
+LLM_MODEL_ID = os.getenv("LLM_MODEL_ID", "distilgpt2")
 
 # LLM Generation Parameters
 LLM_MAX_NEW_TOKENS = 250   # Max length of the generated message
